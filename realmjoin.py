@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import fnmatch
 import os
 import subprocess
@@ -6,11 +7,11 @@ import fileinput
 import platform
 
 ### START VARIABLES ###
-AD_DOMAIN = raw_input('Active Directory Domain: ')
-AD_REALM = raw_input('Active Directory Realm: ')
-AD_DC_HOSTNAME = raw_input('Domain Controller (no domain suffix): ')  # do not add domain suffix
-AD_DC_IP = raw_input('Domain Controller IP: ')
-AD_GROUP = raw_input('Domain Group that is allowed to ssh to server: ')
+AD_DOMAIN = input('Active Directory Domain: ')
+AD_REALM = input('Active Directory Realm: ')
+AD_DC_HOSTNAME = input('Domain Controller (no domain suffix): ')  # do not add domain suffix
+AD_DC_IP = input('Domain Controller IP: ')
+AD_GROUP = input('Domain Group that is allowed to ssh to server: ')
 ### END VARIABLES ###
 
 SSSD_CONF = """[sssd]

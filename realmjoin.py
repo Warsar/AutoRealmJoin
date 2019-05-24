@@ -5,14 +5,16 @@ import subprocess
 import sys
 import fileinput
 import platform
+import fileinput
 
-### START VARIABLES ###
+# START VARIABLES
 AD_DOMAIN = input('Active Directory Domain: ')
 AD_REALM = input('Active Directory Realm: ')
-AD_DC_HOSTNAME = input('Domain Controller (no domain suffix): ')  # do not add domain suffix
+AD_DC_HOSTNAME = input('Domain Controller (no domain suffix): ')  # no suffix
 AD_DC_IP = input('Domain Controller IP: ')
 AD_GROUP = input('Domain Group that is allowed to ssh to server: ')
-### END VARIABLES ###
+ALLOW_PW_LOGIN = input('Allow password login (y/n): ')
+# END VARIABLES
 
 SSSD_CONF = """[sssd]
 domains = """ + AD_DOMAIN + """
@@ -37,15 +39,6 @@ ldap_user_ssh_public_key = altSecurityIdentities
 ldap_use_tokengroups = True """
 
 
-# def install_packages(linux_distro):
-#    if linux_distro == "CentOS Linux":
-#        execute_bashcmd("yum install -y realmd oddjob oddjob-mkhomedir sssd adcli openldap-clients policycoreutils-python samba-common samba-common-tools krb5-workstation")
-#    elif linux_distro == "Ubuntu":
-#        execute_bashcmd("apt install -y realmd oddjob oddjob-mkhomedir sssd adcli openldap-clients policycoreutils-python samba-common samba-common-tools krb5-workstation")
-#    else:
-#        print ("Wrong OS specified: " . linux_distro)
-
-
 def execute_bashcmd(bashCommand):
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
@@ -62,6 +55,8 @@ else:
 
 # Install prerequisites based on distribution
 if linux_distro == "CentOS Linux":
+    sys.stdout.write("No support for CentOS in the current build" + '\n')
+    sys.exit()
     execute_bashcmd("yum update")
     execute_bashcmd("yum install -y realmd oddjob oddjob-mkhomedir sssd adcli openldap-clients policycoreutils-python samba-common samba-common-tools krb5-workstation")
 elif linux_distro == "Ubuntu":
@@ -77,9 +72,6 @@ execute_bashcmd("timedatectl set-timezone Europe/Brussels")
 DNS = "\n" +AD_DC_IP + " " + AD_DC_HOSTNAME + "." + AD_DOMAIN + " " + AD_DC_HOSTNAME
 with open("/etc/hosts", "a") as hosts:
     hosts.write(DNS)
-
-# ADD domain in netplan search domains
-import fileinput
 
 # Add domain to searchable in interface
 # TODO: add Centos Support
@@ -97,16 +89,10 @@ execute_bashcmd("realm list")
 with open("/etc/sssd/sssd.conf", "w") as sssd:
     sssd.write(SSSD_CONF)
 
-# PAM Config
-#with open("/etc/pam.d/sshd", "w") as pam:
-#    pam.write(PAM_CONF)
 with fileinput.FileInput("/etc/pam.d/sshd", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close", "session required pam_mkhomedir.so skel=/etc/skel/ umask=0022\nsession [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close"), end='')
 
-# SSHD Config
-#with open("/etc/ssh/sshd_config", "w") as sshd:
-#    sshd.write(SSHD_CONF)
 with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("#AuthorizedKeysCommand none", "AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys"), end='')
@@ -128,6 +114,15 @@ with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as
 with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("#AllowTcpForwarding yes", "AllowTcpForwarding no"), end='')
+if (ALLOW_PW_LOGIN == "y" or ALLOW_PW_LOGIN == "yes"):
+    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication yes"), end='')
+else:
+    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication no"), end='')
+#PasswordAuthentication yes
 
 # Set login permissions
 execute_bashcmd("realm deny --all")

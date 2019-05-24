@@ -93,6 +93,9 @@ with fileinput.FileInput("/etc/pam.d/sshd", inplace=True, backup='.bak') as file
     for line in file:
         print(line.replace("session [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close", "session required pam_mkhomedir.so skel=/etc/skel/ umask=0022\nsession [success=ok ignore=ignore module_unknown=ignore default=bad]        pam_selinux.so close"), end='')
 
+# Modify SSHD config
+sys.stdout.write("Start modifying /etc/ssh/sshd_config" + '\n')
+
 with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("#AuthorizedKeysCommand none", "AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys"), end='')
@@ -106,7 +109,19 @@ with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as
     for line in file:
         print(line.replace("AuthorizedKeysCommandUser nobody", "AuthorizedKeysCommandUser root"), end='')
 
-        # Security enhancements
+# Modifying Password login
+if (ALLOW_PW_LOGIN == "y" or ALLOW_PW_LOGIN == "yes"):
+    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication yes"), end='')
+        sys.stdout.write("Password Authentication allowed" + '\n')
+else:
+    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication no"), end='')
+        sys.stdout.write("Password Authentication not allowed" + '\n')
+
+# Security enhancements
 with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("#AllowAgentForwarding yes", "AllowAgentForwarding no"), end='')
@@ -114,21 +129,20 @@ with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as
 with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("#AllowTcpForwarding yes", "AllowTcpForwarding no"), end='')
-if (ALLOW_PW_LOGIN == "y" or ALLOW_PW_LOGIN == "yes"):
-    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
-        for line in file:
-            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication yes"), end='')
-else:
-    with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as file:
-        for line in file:
-            print(line.replace("#PasswordAuthentication yes", "PasswordAuthentication no"), end='')
-#PasswordAuthentication yes
+
+sys.stdout.write("Completed modifying /etc/ssh/sshd_config" + '\n')
 
 # Set login permissions
+sys.stdout.write("Start modyfying realm permissions" + '\n')
 execute_bashcmd("realm deny --all")
 execute_bashcmd("realm permit -g "+ AD_GROUP +"@redzone.local")
+sys.stdout.write("Completed modyfying realm permissions" + '\n')
 
 # Make group sudoers
+sys.stdout.write("Start adding AD group to sudoers" + '\n')
 sudo = "%" + AD_GROUP +"@" + AD_DOMAIN  + " ALL=(ALL) ALL"
 with open("/etc/sudoers", "a") as hosts:
     hosts.write(sudo)
+sys.stdout.write("Completed adding AD group to sudoers" + '\n')
+
+sys.stdout.write("Configuration complete, reboot the server" + '\n')

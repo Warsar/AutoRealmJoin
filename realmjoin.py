@@ -133,10 +133,10 @@ with fileinput.FileInput("/etc/ssh/sshd_config", inplace=True, backup='.bak') as
 sys.stdout.write("Completed modifying /etc/ssh/sshd_config" + '\n')
 
 # Set login permissions
-sys.stdout.write("Start modyfying realm permissions" + '\n')
+sys.stdout.write("Start modifying realm permissions" + '\n')
 execute_bashcmd("realm deny --all")
 execute_bashcmd("realm permit -g "+ AD_GROUP +"@redzone.local")
-sys.stdout.write("Completed modyfying realm permissions" + '\n')
+sys.stdout.write("Completed modifying realm permissions" + '\n')
 
 # Make group sudoers
 sys.stdout.write("Start adding AD group to sudoers" + '\n')

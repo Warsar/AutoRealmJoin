@@ -9,8 +9,8 @@ import fileinput
 
 # START VARIABLES
 AD_DOMAIN = input('Active Directory Domain: ')
-AD_REALM = input('Active Directory Realm: ')
-AD_DC_HOSTNAME = input('Domain Controller (no domain suffix): ')  # no suffix
+AD_REALM = input('Active Directory Realm (Usually domain but ALL CAPS): ')
+AD_DC_HOSTNAME = input('Domain Controller Hostname (no domain suffix): ')  # no suffix
 AD_DC_IP = input('Domain Controller IP: ')
 AD_GROUP = input('Domain Group that is allowed to ssh to server: ')
 ALLOW_PW_LOGIN = input('Allow password login (y/n): ')

@@ -6,11 +6,11 @@ import fileinput
 import platform
 
 ### START VARIABLES ###
-AD_DOMAIN = "testdomain.local"
-AD_REALM = "testdomain.LOCAL"
-AD_DC_HOSTNAME = "host01"  # do not add domain suffix
-AD_DC_IP = "10.3.137.2"
-AD_GROUP = "linuxusers"
+AD_DOMAIN = raw_input('Active Directory Domain: ')
+AD_REALM = raw_input('Active Directory Realm: ')
+AD_DC_HOSTNAME = raw_input('Domain Controller (no domain suffix): ')  # do not add domain suffix
+AD_DC_IP = raw_input('Domain Controller IP: ')
+AD_GROUP = raw_input('Domain Group that is allowed to ssh to server: ')
 ### END VARIABLES ###
 
 SSSD_CONF = """[sssd]
@@ -81,6 +81,7 @@ with open("/etc/hosts", "a") as hosts:
 import fileinput
 
 # Add domain to searchable in interface
+# TODO: add Centos Support
 with fileinput.FileInput("/etc/netplan//50-cloud-init.yaml", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("search: []", "search: \n                - " + AD_DOMAIN + ""), end='')

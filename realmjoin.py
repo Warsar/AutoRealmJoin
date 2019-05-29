@@ -75,7 +75,7 @@ with open("/etc/hosts", "a") as hosts:
 
 # Add domain to searchable in interface
 # TODO: add Centos Support
-with fileinput.FileInput("/etc/netplan//50-cloud-init.yaml", inplace=True, backup='.bak') as file:
+with fileinput.FileInput("/etc/netplan/50-cloud-init.yaml", inplace=True, backup='.bak') as file:
     for line in file:
         print(line.replace("search: []", "search: \n                - " + AD_DOMAIN + ""), end='')
 execute_bashcmd("netplan apply")

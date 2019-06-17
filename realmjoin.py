@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-import fnmatch
-import os
 import subprocess
 import sys
 import fileinput
 import platform
-import fileinput
 
 # START VARIABLES
 AD_DOMAIN = input('Active Directory Domain: ')
@@ -42,7 +39,8 @@ ldap_use_tokengroups = True """
 def execute_bashcmd(bashCommand):
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
-
+    sys.stdout.write(output)
+    sys.stdout.write(error)
 
 # Check if Linux OS and find Distribution
 if platform.system() == "Linux":
